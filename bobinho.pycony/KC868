@@ -1,15 +1,58 @@
+import ipaddress
+
 class KC868_Hx:
     """
     Class to interact with controllers from KC868-H family over IP
     For example KC868-H8W, KC868-H16, KC868-H32L serving TCP or UDP
     """
 
-    def __init__(self, controller_ip):
-        # TODO 1: Check for controller existence under this IP
-        # TODO 2: Check if this controller is supported by this class
+    def __init__(self, controller_ip, controller_port=None):
+        if not ipaddress.ip_address(controller_ip):
+            raise ValueError(f"Passed 'controller_ip' ({controller_ip}) is not valid IP address")
         self._controller_ip = controller_ip
+
+        if controller_port is None:
+            self._controller_port = 4196
+        else:
+            self._controller_port = controller_port
+
+        try:
+            scan_result = self._scan_for_controller()
+            controller_type = self._extract_controller_type(scan_result)
+        except Exception as e:
+            raise ControllerNotFoundError(str(e))
+
+        if not self._is_supported(controller_type):
+            raise TypeError(f"Controller found ({controller_type}) is not supported")
 
     def set_relay_state(self, relay_number, state):
         """ Sets relay to a given state """
         # TODO: Set relay state
         raise NotImplementedError
+
+    def _scan_for_controller(self):
+        # TODO: Send SCAN request to obtain controller data
+        # Failing receiving response to SCAN request may mean following:
+        # a. Controller is not accessible for network reasons, for example:
+        #    - IP address is wrong
+        #    - Routing blocks packets to go through
+        #    - Port is wrong
+        #    - Port is blocked by a firewall
+        # b. Target is not working KinCony's controller, for example:
+        #    - It is other type of device
+        #    - Controller is turned off
+        #    - Controller is not configured to be serving through IP
+        #    - Controller is of not supported type which does not respond to prepared SCAN request
+        raise NotImplementedError
+
+    def _extract_controller_type(self, scan_response):
+        # TODO: Extract controller's type from passed SCAN response
+        raise NotImplementedError
+
+    def _is_supported(self, controller_type):
+        # TODO: Check if this controller is supported by this class
+        raise NotImplementedError
+
+class ControllerNotFoundError(RuntimeError):
+    def __init__(self, detailed_error_message):
+        super().__init__(f"Target device was not detected as working KinCony's controller:\n{detailed_error_message}")
