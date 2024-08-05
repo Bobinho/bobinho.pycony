@@ -23,7 +23,7 @@ class KC868_Hx:
             raise ControllerNotFoundError(str(e))
 
         if not self._is_supported(controller_type):
-            raise TypeError(f"Controller found ({controller_type}) is not supported")
+            raise ControllerNotSupportedError(controller_type)
 
     def set_relay_state(self, relay_number, state):
         """ Sets relay to a given state """
@@ -56,3 +56,7 @@ class KC868_Hx:
 class ControllerNotFoundError(RuntimeError):
     def __init__(self, detailed_error_message):
         super().__init__(f"Target device was not detected as working KinCony's controller:\n{detailed_error_message}")
+
+class ControllerNotSupportedError(TypeError):
+    def __init__(self, found_controller_type):
+        super().__init__(f"Controller found ({found_controller_type}) is not supported")
